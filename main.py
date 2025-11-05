@@ -2,6 +2,7 @@ from app.model_factories.session import factory_session_scope
 
 
 with factory_session_scope():
+    # script start here
     from app.model_factories.models import (
         UsersFactory,
         ExpenseCategoriesFactory,
