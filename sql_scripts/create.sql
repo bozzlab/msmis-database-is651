@@ -5,7 +5,7 @@ START TRANSACTION;
 -- ------------------
 
 CREATE TYPE gender_enum AS ENUM ('F', 'M', 'Others','Rather not to say');
-CREATE TYPE subscription_plan_billing_cycle AS ENUM ('MONTHLY', 'YEARLY');
+CREATE TYPE subscription_plan_billing_cycle AS ENUM ('MONTHLY', 'YEARLY', 'QUARTERLY', 'HALF_YEAR');
 CREATE TYPE user_subscriptions_status AS ENUM ('ACTIVE', 'CANCELLED', 'TRIAL', 'PAST_DUE', 'EXPIRED');
 CREATE TYPE user_notification_status_enum AS ENUM ('PENDING', 'SENT', 'READ', 'FAILED');
 CREATE TYPE notification_type_channel_enum AS ENUM ('EMAIL', 'APP_PUSH', 'SMS');
