@@ -196,7 +196,7 @@ def upgrade() -> None:
         sa.Column("price", sa.Numeric(precision=10, scale=2), nullable=False),
         sa.Column(
             "billing_cycle",
-            sa.Enum("MONTHLY", "YEARLY", name="subscription_plan_billing_cycle"),
+            sa.Enum("MONTHLY", "YEARLY","QUARTERLY", "HALF_YEAR", name="subscription_plan_billing_cycle"),
             nullable=False,
         ),
         sa.Column(
