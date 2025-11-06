@@ -11,6 +11,7 @@ pydantic = "==1.10.*"
 sqlalchemy = "==2.0.*"
 sqlacodegen = "==3.1.*"
 ruff = "==0.13.*"
+tomli = "==2.3.*"
 
 [dev-packages]
 
