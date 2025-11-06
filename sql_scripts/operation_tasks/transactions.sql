@@ -85,6 +85,38 @@ WHERE user_id = 10
 -- | 167035.60       | 3974.60         | 163061.00       |
 
 
--- 2. Get specific range with specific user 
+-- 2. Get specific range and user 
+
+--- user_id = 5 range 2025-10-15 to 2025-11-15
+
+SELECT
+    (SELECT COALESCE(SUM(amount),0) 
+     FROM expense_transactions
+     WHERE user_id = 5
+       AND transaction_datetime >= '2025-10-15'
+       AND transaction_datetime <= '2025-11-15') AS total_expense,
+       
+    (SELECT COALESCE(SUM(amount),0) 
+     FROM income_transactions
+     WHERE user_id = 5
+       AND transaction_datetime >= '2025-10-15'
+       AND transaction_datetime <= '2025-11-15') AS total_income,
+       
+    (SELECT COALESCE(SUM(amount),0) 
+     FROM income_transactions
+     WHERE user_id = 5
+       AND transaction_datetime >= '2025-10-15'
+       AND transaction_datetime <= '2025-11-15')
+    -
+    (SELECT COALESCE(SUM(amount),0) 
+     FROM expense_transactions
+     WHERE user_id = 5
+       AND transaction_datetime >= '2025-10-15'
+       AND transaction_datetime <= '2025-11-15') AS total_net;
 
 
+-- output 
+
+-- | total_expense | total_income | total_net |
+-- | ------------- | ------------ | --------- |
+-- | 5671.25       | 61818.00     | 56146.75  |
