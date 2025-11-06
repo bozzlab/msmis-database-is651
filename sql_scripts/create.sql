@@ -91,26 +91,34 @@ CREATE TABLE partner_products (
 
 -- User Tables
 CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  phone_number VARCHAR(50) NOT NULL UNIQUE,
-  first_name VARCHAR(100) NOT NULL,
-  last_name VARCHAR(100) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  dob DATE NOT NULL,
-  gender gender_enum NOT NULL,
-  occupation_id INT NOT NULL,
-  work_experience_level_id INT NOT NULL,
-  education_level_id INT NOT NULL,
-  postal_code_id INT NOT NULL,
-  currency_id INT NOT NULL,
-  personal_data_consent BOOLEAN NOT NULL,
-  marketing_consent BOOLEAN NOT NULL,
-  last_modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
+ id serial NOT NULL,
+    username character varying(255) NOT NULL,
+    password_hash character varying(255) NOT NULL,
+    phone_number character varying(50) NOT NULL,
+    first_name character varying(100) NOT NULL,
+    last_name character varying(100) NOT NULL,
+    email character varying(255) NOT NULL,
+    dob date NOT NULL,
+    gender gender_enum NOT NULL,
+    occupation_id integer NOT NULL,
+    work_experience_level_id integer NOT NULL,
+    education_level_id integer NOT NULL,
+    postal_code_id integer NOT NULL,
+    currency_id integer NOT NULL,
+    personal_data_consent boolean NOT NULL,
+    marketing_consent boolean NOT NULL,
+    last_modified_at timestamp without time zone NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at timestamp without time zone NULL DEFAULT CURRENT_TIMESTAMP,
+    age integer NOT NULL DEFAULT (
+      (
+        (2025)::numeric - EXTRACT(
+          year
+          FROM
+            dob
+        )
+      )
+    )::integer
+  );
 
 CREATE TABLE subscription_plans (
     id SERIAL PRIMARY KEY, 
@@ -230,7 +238,7 @@ CREATE TABLE income_planned_transactions (
   name VARCHAR(255) NOT NULL,
   amount DECIMAL(10, 2) NOT NULL,
   currency_id INT NOT NULL,
-  date DATE NOT NULL,
+  day INT NOT NULL,
   "interval" income_interval_enum NOT NULL,
   start_date DATE NULL,
   end_date DATE NULL,
@@ -288,7 +296,7 @@ CREATE TABLE expense_planned_transactions (
   name VARCHAR(255) NOT NULL,
   amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
   currency_id INT NOT NULL,
-  date DATE NOT NULL,
+  day int NOT NULL,
   "interval" expense_interval_enum NOT NULL,
   start_date DATE NULL,
   end_date DATE NULL,

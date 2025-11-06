@@ -9,6 +9,9 @@ with factory_session_scope():
         IncomeCategoriesFactory,
         ExpenseTransactionsFactory,
         IncomeTransactionsFactory,
+        UserGoalsFactory,
+        IncomePlannedTransactionsFactory,
+        ExpensePlannedTransactionsFactory,
     )
 
     users = []
@@ -43,3 +46,19 @@ with factory_session_scope():
             print(
                 f"Created income transaction for user {user.id}: {income.id} - {income.name} - {income.amount}"
             )
+
+    for user in users:
+        goal = UserGoalsFactory(user=user)
+        print(
+            f"Created user goal for user {user.id}: {goal.id} - {goal.name} [{goal.target_goal}] - {goal.amount}"
+        )
+
+    for user in users:
+        planned_expense = ExpensePlannedTransactionsFactory(user=user)
+        print(
+            f"Created planned expense transaction for user {user.id}: {planned_expense.id} - {planned_expense.name} - {planned_expense.amount}"
+        )
+        planned_income = IncomePlannedTransactionsFactory(user=user)
+        print(
+            f"Created planned income transaction for user {user.id}: {planned_income.id} - {planned_income.name} - {planned_income.amount}"
+        )
