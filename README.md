@@ -57,7 +57,7 @@
 
 ## Populate data 
 
-Write your custom population script in `main.py`
+Write your custom population script in `populate_script.py`
 
 Sample Logs:
 

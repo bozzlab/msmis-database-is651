@@ -206,7 +206,13 @@ class SubscriptionPlans(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     price: Mapped[decimal.Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     billing_cycle: Mapped[str] = mapped_column(
-        Enum("MONTHLY", "YEARLY", name="subscription_plan_billing_cycle"),
+        Enum(
+            "MONTHLY",
+            "YEARLY",
+            "QUARTERLY",
+            "HALF_YEAR",
+            name="subscription_plan_billing_cycle",
+        ),
         nullable=False,
     )
     is_active: Mapped[bool] = mapped_column(
@@ -218,6 +224,10 @@ class SubscriptionPlans(Base):
     )
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, server_default=text("CURRENT_TIMESTAMP")
+    )
+
+    subscription_plan: Mapped[list["UserSubscriptions"]] = relationship(
+        "UserSubscriptions", back_populates="subscription_plan"
     )
 
 
@@ -321,6 +331,12 @@ class Users(Base):
     created_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, server_default=text("CURRENT_TIMESTAMP")
     )
+    status: Mapped[str] = mapped_column(
+        Enum("PENDING", "ACTIVATED", "INACTIVATED", name="user_status_enum"),
+        nullable=False,
+        server_default=text("ACTIVATED"),
+        default="PENDING",
+    )
 
     age: Mapped[int] = mapped_column(
         Integer,
@@ -378,6 +394,7 @@ class ExpenseCategories(Base):
     __table_args__ = (
         ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_exp_cat_user"),
         PrimaryKeyConstraint("id", name="expense_categories_pkey"),
+        UniqueConstraint("user_id", "name", name="uq_expense_cat_user_name"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -404,6 +421,7 @@ class IncomeCategories(Base):
     __table_args__ = (
         ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_income_cat_user"),
         PrimaryKeyConstraint("id", name="income_categories_pkey"),
+        UniqueConstraint("user_id", "name", name="uq_income_cat_user_name"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -444,6 +462,7 @@ class UserGoals(Base):
     status: Mapped[str] = mapped_column(
         Enum("IN_PROGRESS", "FAILED", "PENDING", "SUCCESS", name="goal_status_enum"),
         nullable=False,
+        server_default=text("'PENDING'::goal_status_enum"),
     )
     last_modified_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, server_default=text("CURRENT_TIMESTAMP")
@@ -533,6 +552,9 @@ class UserSubscriptions(Base):
     __tablename__ = "user_subscriptions"
     __table_args__ = (
         ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_user_sub_user"),
+        ForeignKeyConstraint(
+            ["plan_id"], ["subscription_plans.id"], name="fk_user_sub_plan"
+        ),
         PrimaryKeyConstraint("id", name="user_subscriptions_pkey"),
         UniqueConstraint("user_id", name="user_subscriptions_user_id_key"),
     )
@@ -568,6 +590,9 @@ class UserSubscriptions(Base):
     )
 
     user: Mapped["Users"] = relationship("Users", back_populates="user_subscriptions")
+    subscription_plan: Mapped["SubscriptionPlans"] = relationship(
+        "SubscriptionPlans", back_populates="subscription_plan"
+    )
 
 
 class ExpensePlannedTransactions(Base):
@@ -854,8 +879,13 @@ class IncomeTransactionAttachments(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     transaction_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    file_type: Mapped[str] = mapped_column(
+        Enum("jpg", "png", "pdf", name="file_type_enum"), nullable=False
+    )
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     path: Mapped[str] = mapped_column(String(1024), nullable=False)
+    content_length_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
     last_modified_at: Mapped[Optional[datetime.datetime]] = mapped_column(
         DateTime, server_default=text("CURRENT_TIMESTAMP")
     )

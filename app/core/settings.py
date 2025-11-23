@@ -10,7 +10,12 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: str
     DB_NAME: str
+    DB_PORT: str
     DATABASE_URI: Optional[PostgresDsn] = None
+
+    PROJECT_NAME: str = "Pook Moo API"
+
+    API_PATH_STR: str = "/api/v1"
 
     @validator("DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: dict[str, Any]) -> str:
@@ -22,6 +27,7 @@ class Settings(BaseSettings):
             user=values.get("DB_USER"),
             password=parse.quote(values.get("DB_PASS")),
             host=values.get("DB_HOST"),
+            port=values.get("DB_PORT"),
             path=f"/{values.get('DB_NAME') or ''}",
         )
 
