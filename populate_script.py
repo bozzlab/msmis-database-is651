@@ -67,7 +67,7 @@ with factory_session_scope() as session:
         print("start date:", date_range[0], "end date:", date_range[-1])
 
         for date in date_range:
-            expense = ExpenseTransactionsFactory(user=user, transaction_datetime=date)
+            expense = ExpenseTransactionsFactory(user=user, transaction_datetime=date, payment_method_id=random.randint(1,3))
             print(
                 f"Created expense transaction for user {user.id}: [{date}] {expense.id} - [{expense.category.name}] {expense.name} - {expense.amount}"
             )

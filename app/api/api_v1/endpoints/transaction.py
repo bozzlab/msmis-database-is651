@@ -12,6 +12,8 @@ from app.schemas.transaction import (
 )
 from sqlalchemy.orm import Session
 from app.crud.transaction import crud_income_transaction, crud_expense_transaction
+from app.crud.category import crud_income_category, crud_expense_category
+
 from app.services.transaction_service import TransactionService
 from app.api.dependency.user import get_current_user
 
@@ -26,6 +28,18 @@ def _validate_owner(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized for this transaction",
+        )
+
+
+def _validate_owner_category(
+    db: Session, crud_category: callable, current_user: models.Users, transaction_create: TransactionCreate
+) -> None:
+    db_category = crud_category.get(db, id=transaction_create.category_id)
+
+    if current_user.id != db_category.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid category",
         )
 
 
@@ -55,6 +69,7 @@ async def create_income_transaction(
     transaction_create: TransactionCreate = Body(...),
 ) -> TransactionResponse:
     _validate_owner(current_user, transaction_create)
+    _validate_owner_category(db_session, crud_income_category, current_user, transaction_create)
 
     return crud_income_transaction.create(db_session, obj_in=transaction_create)
 
@@ -66,6 +81,7 @@ async def create_expense_transaction(
     transaction_create: TransactionCreate = Body(...),
 ) -> TransactionResponse:
     _validate_owner(current_user, transaction_create)
+    _validate_owner_category(db_session, crud_expense_category, current_user, transaction_create)
 
     return crud_expense_transaction.create(db_session, obj_in=transaction_create)
 
@@ -84,7 +100,10 @@ async def update_expense_transaction(
         raise HTTPException(status_code=404, detail="not found transaction")
 
     _validate_owner(current_user, db_transaction)
-    
+
+    if transaction_update.category_id is not None:
+        _validate_owner_category(db_session, crud_expense_category, current_user, transaction_update)
+
     tx_id = db_transaction.id
 
     crud_expense_transaction.update(db=db_session, id=tx_id, obj_in=transaction_update)
@@ -106,7 +125,7 @@ async def delete_expense_transaction(
         raise HTTPException(status_code=404, detail="not found transaction")
 
     _validate_owner(current_user, db_transaction)
-    
+
     crud_expense_transaction.delete(db_session, db_transaction.id)
 
 
@@ -124,7 +143,10 @@ async def update_income_transaction(
         raise HTTPException(status_code=404, detail="not found transaction")
 
     _validate_owner(current_user, db_transaction)
-    
+
+    if transaction_update.category_id is not None:
+        _validate_owner_category(db_session, crud_income_category, current_user, transaction_update)
+
     tx_id = db_transaction.id
 
     crud_income_transaction.update(db=db_session, id=tx_id, obj_in=transaction_update)
