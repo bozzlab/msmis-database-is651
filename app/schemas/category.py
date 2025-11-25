@@ -13,7 +13,7 @@ class CategoryUpdateRequest(BaseModel):
     user_id: int
 
 
-class BaseCategoryResponse(BaseModel):
+class CategoryResponse(BaseModel):
     id: int
     name: str
     created_at: datetime
@@ -23,9 +23,9 @@ class BaseCategoryResponse(BaseModel):
         orm_mode = True
 
 
-class CategoryResponse(BaseModel):
-    income: list[BaseCategoryResponse] = []
-    expense: list[BaseCategoryResponse] = []
+class CategorySummaryResponse(BaseModel):
+    income: list[CategoryResponse] = []
+    expense: list[CategoryResponse] = []
 
     class Config:
         orm_mode = True

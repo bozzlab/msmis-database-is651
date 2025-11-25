@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.constants.category_type import CategoryType
 from app.models.models import IncomeCategories, ExpenseCategories
-from app.schemas.category import CategoryResponse, BaseCategoryResponse
+from app.schemas.category import CategoryResponse, CategorySummaryResponse
 
 CATEGORY_TYPE_MODEL_MAP = {
     CategoryType.INCOME: IncomeCategories,
@@ -16,8 +16,8 @@ class CategoryService:
 
     def get_categories(
         self, user_id: int, category_types: list[CategoryType] = list(CategoryType)
-    ) -> CategoryResponse:
-        response = CategoryResponse(income=[], expense=[])
+    ) -> CategorySummaryResponse:
+        response = CategorySummaryResponse(income=[], expense=[])
 
         for category_type in category_types:
             model = CATEGORY_TYPE_MODEL_MAP.get(category_type)
@@ -29,7 +29,7 @@ class CategoryService:
                         response,
                         category_type.value.lower(),
                         [
-                            BaseCategoryResponse.from_orm(db_category)
+                            CategoryResponse.from_orm(db_category)
                             for db_category in db_categories
                         ],
                     )

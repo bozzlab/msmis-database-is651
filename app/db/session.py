@@ -7,5 +7,6 @@ from app.core.settings import get_settings
 
 
 engine = create_engine(str(get_settings().DATABASE_URI), pool_pre_ping=True, echo=False)
+# engine = create_engine(str(get_settings().DATABASE_URI), pool_pre_ping=True, echo=True)
 session_factory = sessionmaker(bind=engine)
 db_session = scoped_session(session_factory)

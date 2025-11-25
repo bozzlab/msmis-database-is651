@@ -4,6 +4,21 @@ from datetime import datetime
 from fastapi import HTTPException, status
 
 from pydantic import BaseModel, confloat, conint, validator
+from .category import CategoryResponse
+from .payment_method import PaymentMethod
+
+
+
+class TransactionAttachment(BaseModel):
+    id: int
+    transaction_id: int
+    filename: str
+    file_type: str
+    content_length_bytes: str
+    path: str
+
+    class Config:
+        orm_mode = True
 
 
 class BaseTransaction(BaseModel):
@@ -30,19 +45,19 @@ class BaseTransaction(BaseModel):
         return v
 
 
-class BaseTransactionCreate(BaseTransaction):
+class TransactionCreate(BaseTransaction):
     pass
 
 
 class TransactionUpdate(BaseModel):
     name: Optional[str] = None
-    transaction_datetime: datetime
+    transaction_datetime: datetime = None
     amount: Optional[confloat(gt=0)] = None
     exclude_from_goal: Optional[bool] = None
     note: Optional[str] = None
 
-    category_id: conint(ge=1)
-    payment_method_id: conint(ge=1)
+    category_id: conint(ge=1) = None
+    payment_method_id: conint(ge=1) = None
 
     @validator("transaction_datetime")
     def validate_transaction_datetime(cls, v) -> datetime:
@@ -57,16 +72,20 @@ class TransactionUpdate(BaseModel):
         return v
 
 
-class BaseTransactionResponse(BaseTransaction):
+class TransactionResponse(BaseTransaction):
     id: int
+
+    category: CategoryResponse
+    payment_method: PaymentMethod
+    transaction_attachments: list[TransactionAttachment]
 
     class Config:
         orm_mode = True
 
 
-class TransactionResponse(BaseModel):
-    income: list[BaseTransactionResponse] = []
-    expense: list[BaseTransactionResponse] = []
+class TransactionSummaryResponse(BaseModel):
+    income: list[TransactionResponse] = []
+    expense: list[TransactionResponse] = []
 
     class Config:
         orm_mode = True

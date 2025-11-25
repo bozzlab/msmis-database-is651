@@ -256,8 +256,7 @@ class ExpensePlannedTransactionsFactory(BaseFactory):
     name = factory.LazyAttribute(lambda o: random.choice(PLAN_EXPENSE))
     amount = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
     day = random.choice(range(1, 31))
-    # interval = factory.Iterator(["WEEKLY", "MONTHLY", "YEARLY"])
-    interval = "MONTHLY"
+    interval = "MONTHLY"  # ["WEEKLY", "MONTHLY", "YEARLY"]
 
     @factory.lazy_attribute
     def start_date(self):

@@ -13,7 +13,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get("/users/{user_id}", status_code=status.HTTP_200_OK)
 async def get_user(db_session=Depends(get_db), *, user_id: int) -> UserResponse:
-    db_user = crud_user.get(db_session, id=user_id)
+    db_user = crud_user.get_by_condition(db_session, id=user_id)
 
     if not db_user:
         raise HTTPException(
@@ -30,13 +30,11 @@ async def create_user(
     validated_user = validate_user_creation(db_session, user_create=user_create)
     db_user = crud_user.create(db_session, obj_in=validated_user)
 
-    return db_user
+    return crud_user.get_by_condition(db_session, id=db_user.id)
 
 
 @router.put("/users/{user_id}", status_code=status.HTTP_200_OK)
-async def update_user(
-    db_session=Depends(get_db), *, user_update: UserUpdate
-) -> UserResponse:
+async def update_user(db_session=Depends(get_db), *, user_update: UserUpdate):
     pass
 
 

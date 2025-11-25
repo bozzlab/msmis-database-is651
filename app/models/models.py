@@ -696,7 +696,7 @@ class ExpenseTransactions(Base):
     ] = relationship(
         "ExpensePlannedTransactionOccurences", back_populates="transaction"
     )
-    expense_transaction_attachments: Mapped[list["ExpenseTransactionAttachments"]] = (
+    transaction_attachments: Mapped[list["ExpenseTransactionAttachments"]] = (
         relationship("ExpenseTransactionAttachments", back_populates="transaction")
     )
 
@@ -790,7 +790,7 @@ class IncomeTransactions(Base):
         "IncomePaymentMethods", back_populates="income_transactions"
     )
     user: Mapped["Users"] = relationship("Users", back_populates="income_transactions")
-    income_transaction_attachments: Mapped[list["IncomeTransactionAttachments"]] = (
+    transaction_attachments: Mapped[list["IncomeTransactionAttachments"]] = (
         relationship("IncomeTransactionAttachments", back_populates="transaction")
     )
 
@@ -862,7 +862,7 @@ class ExpenseTransactionAttachments(Base):
     )
 
     transaction: Mapped["ExpenseTransactions"] = relationship(
-        "ExpenseTransactions", back_populates="expense_transaction_attachments"
+        "ExpenseTransactions", back_populates="transaction_attachments"
     )
 
 
@@ -894,5 +894,5 @@ class IncomeTransactionAttachments(Base):
     )
 
     transaction: Mapped["IncomeTransactions"] = relationship(
-        "IncomeTransactions", back_populates="income_transaction_attachments"
+        "IncomeTransactions", back_populates="transaction_attachments"
     )

@@ -8,6 +8,38 @@ from app.constants.gender_type import GenderType
 from app.constants.user_status_type import UserStatusType
 
 
+class Reference(BaseModel):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class ReferenceLevel(Reference):
+    level: str
+
+
+class Occupation(Reference):
+    pass
+
+
+class WorkExperienceLevel(ReferenceLevel):
+    pass
+
+
+class EducationLevel(ReferenceLevel):
+    pass
+
+
+class Currency(Reference):
+    code: str
+    name: str | None
+
+
+class PostalCode(Reference):
+    postal_code: str
+
+
 class UserBase(BaseModel):
     username: str = Field(..., max_length=255)
     phone_number: str = Field(..., max_length=50)
@@ -59,6 +91,12 @@ class UserStatus(BaseModel):
 class UserResponse(UserBase):
     status: str
     id: int
+
+    occupation: Occupation
+    work_experience_level: WorkExperienceLevel
+    education_level: EducationLevel
+    postal_code: PostalCode
+    currency: Currency
 
     class Config:
         orm_mode = True

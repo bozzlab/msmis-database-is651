@@ -1,16 +1,22 @@
 from datetime import datetime, timedelta
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import selectinload
 
 from app.constants.transaction_type import TransactionType
 from app.constants.transaction_preset_range_type import TransactionPresetRangeType
 from app.models.models import IncomeTransactions, ExpenseTransactions
-from app.schemas.transaction import TransactionResponse, BaseTransactionResponse
+from app.schemas.transaction import TransactionResponse, TransactionSummaryResponse
 
 
 TRANSACTION_TYPE_MODEL_MAP = {
     TransactionType.INCOME: IncomeTransactions,
     TransactionType.EXPENSE: ExpenseTransactions,
+}
+
+ATTACHMENT_TRANSACTION_TYPE_MODEL_MAP = {
+    TransactionType.INCOME: "income_transaction_attachments",
+    TransactionType.EXPENSE: "expense_transaction_attachments",
 }
 
 
@@ -23,8 +29,8 @@ class TransactionService:
         user_id: int,
         transaction_types: list[TransactionType] = list(TransactionType),
         preset_range: TransactionPresetRangeType = TransactionPresetRangeType.TODAY,
-    ) -> TransactionResponse:
-        response = TransactionResponse(income=[], expense=[])
+    ) -> TransactionSummaryResponse:
+        response = TransactionSummaryResponse(income=[], expense=[])
 
         for transaction_type in transaction_types:
             model = TRANSACTION_TYPE_MODEL_MAP.get(transaction_type)
@@ -33,6 +39,13 @@ class TransactionService:
                 .filter(
                     model.user_id == user_id,
                     self._get_preset_range_filter(model, preset_range),
+                )
+                .options(
+                    [
+                        selectinload(model.payment_method),
+                        selectinload(model.category),
+                        selectinload(model.transaction_attachments),
+                    ]
                 )
                 .all()
             )
@@ -43,7 +56,7 @@ class TransactionService:
                         response,
                         transaction_type.value.lower(),
                         [
-                            BaseTransactionResponse.from_orm(db_category)
+                            TransactionResponse.from_orm(db_category)
                             for db_category in db_transactions
                         ],
                     )

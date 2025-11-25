@@ -5,9 +5,10 @@ from app.models import models
 from app.constants.transaction_type import TransactionType
 from app.constants.transaction_preset_range_type import TransactionPresetRangeType
 from app.schemas.transaction import (
-    BaseTransactionCreate,
+    TransactionCreate,
+    TransactionSummaryResponse,
     TransactionResponse,
-    BaseTransactionResponse,
+    TransactionUpdate,
 )
 from sqlalchemy.orm import Session
 from app.crud.transaction import crud_income_transaction, crud_expense_transaction
@@ -18,12 +19,15 @@ from app.api.dependency.user import get_current_user
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 
-def _validate_owner(current_user: models.Users, transaction_create: BaseTransactionCreate) -> None:
+def _validate_owner(
+    current_user: models.Users, transaction_create: TransactionCreate
+) -> None:
     if current_user.id != transaction_create.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to create transaction for this user",
+            detail="Not authorized for this transaction",
         )
+
 
 @router.get("")
 async def get_transactions(
@@ -33,7 +37,7 @@ async def get_transactions(
         default=TransactionPresetRangeType.TODAY
     ),
     current_user: models.Users = Depends(get_current_user),
-) -> TransactionResponse:
+) -> TransactionSummaryResponse:
     service = TransactionService(db_session)
     transactions = service.get_transactions(
         transaction_types=transaction_types,
@@ -48,8 +52,8 @@ async def get_transactions(
 async def create_income_transaction(
     db_session: Session = Depends(get_db),
     current_user: models.Users = Depends(get_current_user),
-    transaction_create: BaseTransactionCreate = Body(...),
-) -> BaseTransactionResponse:
+    transaction_create: TransactionCreate = Body(...),
+) -> TransactionResponse:
     _validate_owner(current_user, transaction_create)
 
     return crud_income_transaction.create(db_session, obj_in=transaction_create)
@@ -59,8 +63,8 @@ async def create_income_transaction(
 async def create_expense_transaction(
     db_session: Session = Depends(get_db),
     current_user: models.Users = Depends(get_current_user),
-    transaction_create: BaseTransactionCreate = Body(...),
-) -> BaseTransactionResponse:
+    transaction_create: TransactionCreate = Body(...),
+) -> TransactionResponse:
     _validate_owner(current_user, transaction_create)
 
     return crud_expense_transaction.create(db_session, obj_in=transaction_create)
@@ -72,19 +76,38 @@ async def update_expense_transaction(
     current_user: models.Users = Depends(get_current_user),
     *,
     transaction_id: int,
-    transaction_name: str = Body(...),
-) -> dict:
-    pass
+    transaction_update: TransactionUpdate = Body(...),
+):
+    db_transaction = crud_expense_transaction.get(db=db_session, id=transaction_id)
+
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="not found transaction")
+
+    _validate_owner(current_user, db_transaction)
+    
+    tx_id = db_transaction.id
+
+    crud_expense_transaction.update(db=db_session, id=tx_id, obj_in=transaction_update)
+
+    return crud_expense_transaction.get_by_condition(db_session=db_session, id=tx_id)
 
 
-@router.delete("/expense/{transaction_id}")
+@router.delete("/expense/{transaction_id}", status_code=204)
 async def delete_expense_transaction(
     db_session: Session = Depends(get_db),
     current_user: models.Users = Depends(get_current_user),
     *,
     transaction_id: int,
-) -> dict:
-    pass
+
+) -> None:
+    db_transaction = crud_expense_transaction.get(db=db_session, id=transaction_id)
+
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="not found transaction")
+
+    _validate_owner(current_user, db_transaction)
+    
+    crud_expense_transaction.delete(db_session, db_transaction.id)
 
 
 @router.put("/income/{transaction_id}")
@@ -93,9 +116,20 @@ async def update_income_transaction(
     current_user: models.Users = Depends(get_current_user),
     *,
     transaction_id: int,
-    transaction_name: str = Body(...),
+    transaction_update: TransactionUpdate = Body(...),
 ) -> dict:
-    pass
+    db_transaction = crud_income_transaction.get(db=db_session, id=transaction_id)
+
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="not found transaction")
+
+    _validate_owner(current_user, db_transaction)
+    
+    tx_id = db_transaction.id
+
+    crud_income_transaction.update(db=db_session, id=tx_id, obj_in=transaction_update)
+
+    return crud_income_transaction.get_by_condition(db_session=db_session, id=tx_id)
 
 
 @router.delete("/income/{transaction_id}")
@@ -105,4 +139,11 @@ async def delete_income_transaction(
     *,
     transaction_id: int,
 ) -> dict:
-    pass
+    db_transaction = crud_expense_transaction.get(db=db_session, id=transaction_id)
+
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="not found transaction")
+
+    _validate_owner(current_user, db_transaction)
+    
+    crud_income_transaction.delete(db_session, db_transaction.id)
